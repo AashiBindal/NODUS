@@ -1,65 +1,124 @@
--- MS SQL Server DDL Schema for NODUS
 
-CREATE TABLE Users (
-    UserID INT PRIMARY KEY IDENTITY(1,1),
+-- Create Schema
+IF SCHEMA_ID('nodus') IS NULL
+    EXEC('CREATE SCHEMA nodus');
+GO
+
+-- 1. Users
+IF OBJECT_ID('nodus.Users', 'U') IS NOT NULL
+    DROP TABLE nodus.Users;
+GO
+
+CREATE TABLE nodus.Users (
+    UserID INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(100) NOT NULL,
     Email NVARCHAR(100) UNIQUE NOT NULL,
     PasswordHash NVARCHAR(255) NOT NULL,
-    Role NVARCHAR(20) CHECK (Role IN ('Student', 'Faculty', 'Admin')),
+    Role NVARCHAR(20)
+        CHECK (Role IN ('Student', 'Faculty', 'Admin')),
     CreatedDate DATETIME DEFAULT GETDATE()
 );
+GO
 
-CREATE TABLE Branches (
-    BranchID INT PRIMARY KEY IDENTITY(1,1),
+-- 2. Branches
+IF OBJECT_ID('nodus.Branches', 'U') IS NOT NULL
+    DROP TABLE nodus.Branches;
+GO
+
+CREATE TABLE nodus.Branches (
+    BranchID INT IDENTITY(1,1) PRIMARY KEY,
     BranchName NVARCHAR(100) NOT NULL
 );
+GO
 
-CREATE TABLE Semesters (
-    SemID INT PRIMARY KEY IDENTITY(1,1),
+-- 3. Semesters
+IF OBJECT_ID('nodus.Semesters', 'U') IS NOT NULL
+    DROP TABLE nodus.Semesters;
+GO
+
+CREATE TABLE nodus.Semesters (
+    SemID INT IDENTITY(1,1) PRIMARY KEY,
     SemNumber INT NOT NULL,
     IsLocked BIT DEFAULT 1
 );
+GO
 
-CREATE TABLE Subjects (
-    SubjectID INT PRIMARY KEY IDENTITY(1,1),
-    SemID INT FOREIGN KEY REFERENCES Semesters(SemID),
+-- 4. Subjects
+IF OBJECT_ID('nodus.Subjects', 'U') IS NOT NULL
+    DROP TABLE nodus.Subjects;
+GO
+
+CREATE TABLE nodus.Subjects (
+    SubjectID INT IDENTITY(1,1) PRIMARY KEY,
+    SemID INT FOREIGN KEY REFERENCES nodus.Semesters(SemID),
     SubjectName NVARCHAR(100) NOT NULL
 );
+GO
 
-CREATE TABLE Units (
-    UnitID INT PRIMARY KEY IDENTITY(1,1),
-    SubjectID INT FOREIGN KEY REFERENCES Subjects(SubjectID),
+-- 5. Units
+IF OBJECT_ID('nodus.Units', 'U') IS NOT NULL
+    DROP TABLE nodus.Units;
+GO
+
+CREATE TABLE nodus.Units (
+    UnitID INT IDENTITY(1,1) PRIMARY KEY,
+    SubjectID INT FOREIGN KEY REFERENCES nodus.Subjects(SubjectID),
     UnitNumber INT NOT NULL,
     UnitName NVARCHAR(100) NOT NULL
 );
+GO
 
-CREATE TABLE Sections (
-    SectionID INT PRIMARY KEY IDENTITY(1,1),
-    SectionName NVARCHAR(10) NOT NULL -- e.g., Sec A, Sec B
+-- 6. Sections
+IF OBJECT_ID('nodus.Sections', 'U') IS NOT NULL
+    DROP TABLE nodus.Sections;
+GO
+
+CREATE TABLE nodus.Sections (
+    SectionID INT IDENTITY(1,1) PRIMARY KEY,
+    SectionName NVARCHAR(10) NOT NULL
 );
+GO
 
-CREATE TABLE Notes (
-    NoteID INT PRIMARY KEY IDENTITY(1,1),
-    UnitID INT FOREIGN KEY REFERENCES Units(UnitID),
-    AuthorID INT FOREIGN KEY REFERENCES Users(UserID),
+-- 7. Notes
+IF OBJECT_ID('nodus.Notes', 'U') IS NOT NULL
+    DROP TABLE nodus.Notes;
+GO
+
+CREATE TABLE nodus.Notes (
+    NoteID INT IDENTITY(1,1) PRIMARY KEY,
+    UnitID INT FOREIGN KEY REFERENCES nodus.Units(UnitID),
+    AuthorID INT FOREIGN KEY REFERENCES nodus.Users(UserID),
     Title NVARCHAR(200) NOT NULL,
-    Content TEXT,
-    IsPrivate BIT DEFAULT 0 -- 0: Faculty Public, 1: Student Private Self-Note
+    Content NVARCHAR(MAX),
+    IsPrivate BIT DEFAULT 0
 );
+GO
 
-CREATE TABLE Assignments (
-    AssignmentID INT PRIMARY KEY IDENTITY(1,1),
-    SubjectID INT FOREIGN KEY REFERENCES Subjects(SubjectID),
-    FacultyID INT FOREIGN KEY REFERENCES Users(UserID),
+-- 8. Assignments
+IF OBJECT_ID('nodus.Assignments', 'U') IS NOT NULL
+    DROP TABLE nodus.Assignments;
+GO
+
+CREATE TABLE nodus.Assignments (
+    AssignmentID INT IDENTITY(1,1) PRIMARY KEY,
+    SubjectID INT FOREIGN KEY REFERENCES nodus.Subjects(SubjectID),
+    FacultyID INT FOREIGN KEY REFERENCES nodus.Users(UserID),
     Title NVARCHAR(200) NOT NULL,
     DueDate DATETIME NOT NULL,
-    TargetSectionID INT FOREIGN KEY REFERENCES Sections(SectionID)
+    TargetSectionID INT FOREIGN KEY REFERENCES nodus.Sections(SectionID)
 );
+GO
 
-CREATE TABLE Submissions (
-    SubmissionID INT PRIMARY KEY IDENTITY(1,1),
-    AssignmentID INT FOREIGN KEY REFERENCES Assignments(AssignmentID),
-    StudentID INT FOREIGN KEY REFERENCES Users(UserID),
+-- 9. Submissions
+IF OBJECT_ID('nodus.Submissions', 'U') IS NOT NULL
+    DROP TABLE nodus.Submissions;
+GO
+
+CREATE TABLE nodus.Submissions (
+    SubmissionID INT IDENTITY(1,1) PRIMARY KEY,
+    AssignmentID INT FOREIGN KEY REFERENCES nodus.Assignments(AssignmentID),
+    StudentID INT FOREIGN KEY REFERENCES nodus.Users(UserID),
     FileUrl NVARCHAR(500),
     SubmittedAt DATETIME DEFAULT GETDATE()
 );
+GO
