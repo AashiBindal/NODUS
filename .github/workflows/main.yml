@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./nodus-platform/backend
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./frontend
+        working-directory: ./nodus-platform/frontend
     steps:
     - uses: actions/checkout@v4
     - name: Set up Node.js
