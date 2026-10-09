@@ -1,0 +1,1 @@
+# Pinecone / Qdrant Client Setup
